@@ -1,0 +1,176 @@
+-- Create GUI
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.3, 0, 0.5, 0)
+frame.Position = UDim2.new(0.35, 0, 0.25, 0)
+frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+frame.Visible = true
+frame.Parent = screenGui
+
+-- Heading (RBX Scripz)
+local heading = Instance.new("TextLabel", frame)
+heading.Size = UDim2.new(1, 0, 0.1, 0)
+heading.Position = UDim2.new(0, 0, 0, 0)
+heading.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+heading.TextColor3 = Color3.fromRGB(255, 255, 255)
+heading.Text = "RBX Scripz"
+heading.Font = Enum.Font.SourceSansBold
+heading.TextScaled = true
+
+-- Minimize Button
+local minimizeButton = Instance.new("TextButton", frame)
+minimizeButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+minimizeButton.Position = UDim2.new(0.8, 0, 0, 0)
+minimizeButton.Text = "-"
+minimizeButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+
+-- Restore Button
+local restoreButton = Instance.new("TextButton", screenGui)
+restoreButton.Size = UDim2.new(0.1, 0, 0.05, 0)
+restoreButton.Position = UDim2.new(0.45, 0, 0.05, 0)
+restoreButton.Text = "+"
+restoreButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+restoreButton.Visible = false
+
+-- ESP Button
+local espButton = Instance.new("TextButton", frame)
+espButton.Size = UDim2.new(1, 0, 0.1, 0)
+espButton.Position = UDim2.new(0, 0, 0.1, 0)
+espButton.Text = "Toggle ESP"
+espButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+
+-- Speed Boost Button
+local speedButton = Instance.new("TextButton", frame)
+speedButton.Size = UDim2.new(1, 0, 0.1, 0)
+speedButton.Position = UDim2.new(0, 0, 0.2, 0)
+speedButton.Text = "Set Speed"
+speedButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+
+-- Speed TextBox
+local speedTextBox = Instance.new("TextBox", frame)
+speedTextBox.Size = UDim2.new(1, 0, 0.1, 0)
+speedTextBox.Position = UDim2.new(0, 0, 0.3, 0)
+speedTextBox.PlaceholderText = "Enter Speed"
+
+-- Jump Boost Button
+local jumpButton = Instance.new("TextButton", frame)
+jumpButton.Size = UDim2.new(1, 0, 0.1, 0)
+jumpButton.Position = UDim2.new(0, 0, 0.4, 0)
+jumpButton.Text = "Set Jump Power"
+jumpButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+
+-- Jump Boost TextBox
+local jumpTextBox = Instance.new("TextBox", frame)
+jumpTextBox.Size = UDim2.new(1, 0, 0.1, 0)
+jumpTextBox.Position = UDim2.new(0, 0, 0.5, 0)
+jumpTextBox.PlaceholderText = "Enter Jump Height"
+
+-- Animation Function for Minimize and Restore
+local function animateUI(targetSize, targetPosition, callback)
+    local tweenService = game:GetService("TweenService")
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local goal = { Size = targetSize, Position = targetPosition }
+    local tween = tweenService:Create(frame, tweenInfo, goal)
+    tween.Completed:Connect(callback or function() end)
+    tween:Play()
+end
+
+-- Minimize UI
+minimizeButton.MouseButton1Click:Connect(function()
+    animateUI(UDim2.new(0, 0, 0, 0), UDim2.new(0.8, 0, 0, 0), function()
+        frame.Visible = false
+        restoreButton.Visible = true
+    end)
+end)
+
+-- Restore UI
+restoreButton.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    animateUI(UDim2.new(0.3, 0, 0.5, 0), UDim2.new(0.35, 0, 0.25, 0), function()
+        restoreButton.Visible = false
+    end)
+end)
+
+-- ESP Variables
+local espEnabled = false
+local highlights = {}
+
+-- Function to update ESP highlights
+local function updateESP()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            if espEnabled then
+                if not highlights[v] then
+                    local highlight = Instance.new("Highlight")
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+                    highlight.Adornee = v.Character
+                    highlight.Parent = v.Character
+                    highlights[v] = highlight
+                end
+            else
+                if highlights[v] then
+                    highlights[v]:Destroy()
+                    highlights[v] = nil
+                end
+            end
+        elseif highlights[v] then
+            highlights[v]:Destroy()
+            highlights[v] = nil
+        end
+    end
+end
+
+-- Toggle ESP
+local function toggleESP()
+    espEnabled = not espEnabled
+    if not espEnabled then
+        for _, highlight in pairs(highlights) do
+            highlight:Destroy()
+        end
+        highlights = {}
+    end
+end
+
+espButton.MouseButton1Click:Connect(toggleESP)
+
+-- Speed Boost Functionality
+local function setSpeed()
+    local speed = tonumber(speedTextBox.Text)
+    if speed and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = speed
+    end
+end
+
+speedButton.MouseButton1Click:Connect(setSpeed)
+
+-- Jump Boost Functionality
+local function setJump()
+    local jump = tonumber(jumpTextBox.Text)
+    if jump and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpPower = jump
+    end
+end
+
+jumpButton.MouseButton1Click:Connect(setJump)
+
+-- Continuously refresh ESP every second
+task.spawn(function()
+    while true do
+        if espEnabled then
+            updateESP()
+        end
+        task.wait(1)
+    end
+end)
+
+-- Clean up highlights when a player leaves
+game.Players.PlayerRemoving:Connect(function(v)
+    if highlights[v] then
+        highlights[v]:Destroy()
+        highlights[v] = nil
+    end
+end)
